@@ -1,0 +1,42 @@
+# Varibale
+$dns = (Get-WmiObject win32_computersystem).Domain
+$computername = $env:computername
+
+# Loglocation
+$Logfile = \\deploy.$dns\BLPW$\"$computername".log
+Function LogWrite
+{
+   Param ([string]$logstring)
+   Add-content $Logfile -value $logstring
+}
+
+# Prepare Bitlocker & TPM
+$BitLocker = Get-WmiObject -Namespace "root\CIMV2\Security\MicrosoftVolumeEncryption" -Class Win32_EncryptableVolume | Select-Object -Property DriveLetter,ProtectionStatus  | Where-Object {$_.ProtectionStatus -eq 1 -and $_.DriveLetter -eq "c:"}
+LogWrite
+
+if($BitLocker.ProtectionStatus -eq 1) {
+       LogWrite
+       EXIT
+}
+Else {
+
+$value = Get-WmiObject Win32_DiskPartition | Where-Object {$_.Size -eq 314572800} | Select -ExpandProperty Size
+LogWrite
+if($value -eq 314572800) {
+       cmd /c manage-bde.exe -tpm -turnon
+       LogWrite
+       
+      
+}
+Else {
+BdeHdCfg.exe -target default -quiet
+LogWrite
+manage-bde.exe -tpm -turnon
+LogWrite
+}
+
+}
+Get-WmiObject Win32_DiskPartition >> \\deploy.$dns\BLPW$\"$computername".log
+manage-bde -status >> \\deploy.$dns\BLPW$\"$computername".log
+LogWrite
+exit $LASTEXITCODE
