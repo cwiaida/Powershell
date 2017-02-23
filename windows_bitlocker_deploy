@@ -1,0 +1,51 @@
+# Varibale
+$fqdn = (Get-WmiObject win32_computersystem).DNSHostName+"."+(Get-WmiObject win32_computersystem).Domain
+$hostname = (Get-WmiObject win32_computersystem).DNSHostName
+$dns = (Get-WmiObject win32_computersystem).Domain
+$maildomain = (Get-WmiObject win32_computersystem).Domain | ForEach-Object{$_ -replace '(.+?)\..+','$1'}
+$key = Get-Random -minimum 1 -maximum 9999
+$computername = $env:computername
+$timestamp = Get-Date -Format g
+
+# BitLocker
+#manage-bde -tpm -turnon
+cmd /C manage-bde -tpm -o '$upp0rter'
+cmd /C manage-bde -protectors -add c: -TPMAndPIN $key
+cmd /C manage-bde -protectors -add c: -RecoveryPassword
+cmd /C manage-bde -protectors -add c: -RecoveryKey c:
+cmd /C manage-bde -protectors -get c: > \\deploy.$dns\BLPW$\$computername.txt
+cmd /C manage-bde -on C: -SkipHardwareTest
+
+# Copy & Move
+cmd /C attrib.exe -H -S C:\*.bek /S /D
+cmd /C move c:\*.bek \\deploy.$dns\BLPW$\
+
+# Backup to ADS
+$adkey = (Get-WmiObject -Namespace root/cimv2/Security/MicrosoftVolumeEncryption -Class Win32_EncryptableVolume -Filter 'DriveLetter = "C:"').GetKeyProtectors(3) | Select -Expand VolumeKeyProtectorID
+cmd /C manage-bde -protectors -adbackup c: -id "$adkey"
+"$key + $computername" >> \\deploy.$dns\BLPW$\BitLockerKeys.txt
+
+# Genrate Mail and Send
+# assign multiple recipients with delimited string
+[string[]]$EmailTo = "reciever01@internet.de,reciever02@internet.de"
+$EmailFrom = "$hostname@aida.de"
+$EmailSubject = "BitLocker PIN for  $fqdn " + (get-date).ToShortDatesTring() + ""
+$EmailBody = "Generated BitLocker PIN on System$maildomain `n`nSystemname:$hostname `nPIN is $key `n`nTimelog:$timestamp"
+Write-Host $EmailBody
+
+
+$SMTPServer = "mail.$dns"
+$SMTPAuthUsername = ""
+$SMTPAuthPassword = ""
+ 
+$mailmessage = New-Object system.net.mail.mailmessage
+$mailmessage.from = ($emailfrom)
+$mailmessage.To.add($emailto)
+$mailmessage.Subject = $emailsubject
+$mailmessage.IsBodyHtml = $true
+$mailmessage.Body = $emailbody
+
+$SMTPClient = New-Object Net.Mail.SmtpClient($SmtpServer, 25) 
+$SMTPClient.Credentials = New-Object System.Net.NetworkCredential ("$SMTPAuthUsername", "$SMTPAuthPassword")
+$SMTPClient.Send($mailmessage)
+
