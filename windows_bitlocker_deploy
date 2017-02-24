@@ -25,7 +25,7 @@ $adkey = (Get-WmiObject -Namespace root/cimv2/Security/MicrosoftVolumeEncryption
 cmd /C manage-bde -protectors -adbackup c: -id "$adkey"
 "$key + $computername" >> \\deploy.$dns\BLPW$\BitLockerKeys.txt
 
-# Genrate Mail and Send
+# Genrate Mail and Send to multipli User
 # assign multiple recipients with delimited string
 [string[]]$EmailTo = "reciever01@internet.de,reciever02@internet.de"
 $EmailFrom = "$hostname@aida.de"
