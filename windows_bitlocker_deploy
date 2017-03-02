@@ -26,7 +26,7 @@ cmd /C manage-bde -protectors -adbackup c: -id "$adkey"
 "$key + $computername" >> \\deploy.$dns\BLPW$\BitLockerKeys.txt
 
 # Genrate Mail and Send to multipli User
-# assign multiple recipients with delimited string
+# assign multiplie recipients with delimited string
 [string[]]$EmailTo = "reciever01@internet.de,reciever02@internet.de"
 $EmailFrom = "$hostname@aida.de"
 $EmailSubject = "BitLocker PIN for  $fqdn " + (get-date).ToShortDatesTring() + ""
