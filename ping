@@ -1,0 +1,19 @@
+$ServerName = Read-Host "Input FQDN or IP with comma separation"
+$Loop = Read-Host "Input sec for Ping Loop"
+$ServerName = $ServerName.Split(',')
+while(1) {sleep -sec $Loop; 
+foreach ($Server in $ServerName) { 
+
+        if (test-Connection -ComputerName $Server -Count 2 -Quiet  ) {  
+         
+            write-Host "$Server is alive and Pinging " -ForegroundColor Green
+            test-Connection -ComputerName $Server -Count 1 | Select Address,IPv4Address,ResponseTime,BufferSize
+            write-Host " "
+                    } else 
+                     
+                    { Write-Warning "$Server seems dead not pinging" 
+                      write-Host " "
+             
+                    }     
+} 
+}
