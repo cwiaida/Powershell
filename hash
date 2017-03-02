@@ -1,0 +1,6 @@
+$source = Read-Host -Prompt 'Input Source'
+$destination = read-host -Prompt 'Input Destination'
+$DiffHashInfo = Compare-Object -ReferenceObject (dir $source -Recurse | Where-Object {!$_.psiscontainer } | 
+    get-filehash) -differenceObject (dir $destination -Recurse | Where-Object {!$_.psiscontainer } | 
+    get-filehash) | Select-Object -ExpandProperty InputObject  
+Get-ChildItem -Path $DiffHashInfo.Path
