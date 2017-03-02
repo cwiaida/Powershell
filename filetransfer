@@ -1,0 +1,5 @@
+$source = Read-Host -Prompt 'Input Source'
+$destination = read-host -Prompt 'Input Destination'
+New-Item -ItemType directory -Path $destination -Name "_transfer"
+$destination_t = Get-Childitem $destination | Where {$_.name -Match "_transfer"} | Select-Object -ExpandProperty FullName
+$proc = Start-Process -FilePath "C:\Windows\SysWOW64\Robocopy.exe" -ArgumentList "$source $destination_t /r:5 /w:10" -Wait -NoNewWindow
